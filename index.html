@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>gay snek</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+<h2>gay snek v1.0.11</h2>
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
+    <p>High Score: <span id="highScoreLabel"></span></p>
+    <p>NOTE: YOUR HIGHSCORE WILL NOT SAVE ON REFRESH!</p>
+
+    <script>
+        // Game code
+
+        // Get the game canvas
+        var canvas = document.getElementById("gameCanvas");
+        var ctx = canvas.getContext("2d");
+
+        // Set up the snake and food
+        var snake = [{ x: 200, y: 200 }, { x: 190, y: 200 }, { x: 180, y: 200 }];
+        var food = { x: 300, y: 300 };
+
+        // Set up the game variables
+        var score = 0;
+        var direction = "right";
+        var blockSize = 20;
+
+        // Function to draw the snake on the canvas
+        function drawSnake() {
+            snake.forEach((segment) => {
+                ctx.fillStyle = "white";
+                ctx.fillRect(segment.x, segment.y, blockSize, blockSize);
+            });
+        }
+
+        // Function to draw the food on the canvas
+        function drawFood() {
+            ctx.fillStyle = "red";
+            ctx.fillRect(food.x, food.y, blockSize, blockSize);
+        }
+
+        // Function to move the snake
+        function moveSnake() {
+            var head = { x: snake[0].x, y: snake[0].y };
+
+            if (direction === "right") head.x += blockSize;
+            if (direction === "left") head.x -= blockSize;
+            if (direction === "up") head.y -= blockSize;
+            if (direction === "down") head.y += blockSize;
+
+            snake.unshift(head);
+
+            // Check if the snake ate the food
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                generateFood();
+            } else {
+                snake.pop();
+            }
+        }
+
+        // Function to generate new food
+        function generateFood() {
+            var maxX = canvas.width - blockSize;
+            var maxY = canvas.height - blockSize;
+
+            food.x = Math.floor(Math.random() * (maxX / blockSize + 1)) * blockSize;
+            food.y = Math.floor(Math.random() * (maxY / blockSize + 1)) * blockSize;
+        }
+
+        // Function to check if the snake collided with the wall or itself
+        function checkCollision() {
+            var head = snake[0];
+
+            // Check collision with the wall
+            if (
+                head.x < 0 ||
+                head.x >= canvas.width ||
+                head.y < 0 ||
+                head.y >= canvas.height
+            ) {
+                gameOver();
+            }
+
+            // Check collision with itself
+            for (var i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    gameOver();
+                    break;
+                }
+            }
+        }
+
+        // Function to update the high score label
+        function updateHighScoreLabel() {
+            var highScoreLabel = document.getElementById("highScoreLabel");
+            highScoreLabel.textContent = score;
+        }
+
+        // Function to end the game
+        function gameOver() {
+            // Save the high score
+            saveHighScore();
+
+            // Display game over message
+            alert("Game Over! Your score: " + score);
+
+            // Reset the game
+            score = 0;
+            direction = "right";
+            snake = [{ x: 200, y: 200 }, { x: 190, y: 200 }, { x: 180, y: 200 }];
+            generateFood();
+        }
+
+        // Function to save the high score
+        function saveHighScore() {
+            var highScore = score;
+            localStorage.setItem("highScore", highScore);
+        }
+
+        // Function to load the high score
+        function loadHighScore() {
+            var highScore = localStorage.getItem("highScore");
+            console.log("High score: " + highScore);
+        }
+
+        // Function to handle keyboard input
+        function handleKeyPress(event) {
+            if (event.key === "ArrowUp" && direction !== "down") direction = "up";
+            if (event.key === "ArrowDown" && direction !== "up") direction = "down";
+            if (event.key === "ArrowLeft" && direction !== "right") direction = "left";
+            if (event.key === "ArrowRight" && direction !== "left") direction = "right";
+        }
+
+        // Function to update the game
+        function updateGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawSnake();
+            drawFood();
+            moveSnake();
+            checkCollision();
+            updateHighScoreLabel();
+
+            // Call the updateGame function again after a delay
+            setTimeout(updateGame, 100);
+        }
+
+        // Call the loadHighScore function to display the high score
+        loadHighScore();
+
+        // Start the game
+        document.addEventListener("keydown", handleKeyPress);
+        updateGame();
+    </script>
+</body>
+</html>
